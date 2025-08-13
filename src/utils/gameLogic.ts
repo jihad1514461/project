@@ -27,6 +27,8 @@ export const createPlayer = (
     intelligence: 1,
     magic: 1,
     vitality: 1,
+    dexterity: 1,
+    agility: 1,
     luck: 1,
     charm: 1,
     reputation: 1,
@@ -366,6 +368,8 @@ export const calculateDerivedStats = (stats: {
   intelligence: number;
   vitality: number;
   magic: number;
+  dexterity: number;
+  agility: number;
   luck: number;
   charm: number;
   reputation: number;
@@ -376,6 +380,8 @@ export const calculateDerivedStats = (stats: {
     mana: stats.magic * 10,
     physicalDamage: Math.floor(stats.strength / 2) + 1, // Base physical damage from strength
     magicalDamage: Math.floor(stats.magic / 2) + 1, // Base magical damage from magic
+    critChance: 5 + Math.max(0, stats.dexterity - 10), // 5% base + 1% per dexterity above 10
+    escapeChance: 25 + Math.max(0, stats.agility - 10), // 25% base + 1% per agility above 10
     luckBonus: Math.floor(stats.luck / 2) + 1, // Luck-based bonuses
     socialInfluence: Math.floor((stats.charm + stats.reputation) / 2) + 1, // Combined social influence
     wealthBonus: Math.floor(stats.gold / 100), // Wealth-based bonuses

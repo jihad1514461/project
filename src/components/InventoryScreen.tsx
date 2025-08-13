@@ -231,6 +231,14 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({
                   <span className="text-white font-medium">{player.stats.vitality}</span>
                 </div>
                 <div className="flex justify-between">
+                  <span className="text-orange-400">🎯 Dexterity:</span>
+                  <span className="text-white font-medium">{player.stats.dexterity}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-cyan-400">💨 Agility:</span>
+                  <span className="text-white font-medium">{player.stats.agility}</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-yellow-400">🍀 Luck:</span>
                   <span className="text-white font-medium">{player.stats.luck}</span>
                 </div>

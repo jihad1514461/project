@@ -352,6 +352,34 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
+                  <span className="text-orange-400 flex items-center">
+                    <span className="mr-2">🎯</span>
+                    Dexterity
+                  </span>
+                  <span className="text-white font-bold">
+                    {totalStats.dexterity}
+                    {totalStats.dexterity !== player.stats.dexterity && (
+                      <span className="text-green-400 text-sm ml-1">
+                        (+{totalStats.dexterity - player.stats.dexterity})
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-cyan-400 flex items-center">
+                    <span className="mr-2">💨</span>
+                    Agility
+                  </span>
+                  <span className="text-white font-bold">
+                    {totalStats.agility}
+                    {totalStats.agility !== player.stats.agility && (
+                      <span className="text-green-400 text-sm ml-1">
+                        (+{totalStats.agility - player.stats.agility})
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
                   <span className="text-yellow-400 flex items-center">
                     <span className="mr-2">💰</span>
                     Gold
@@ -392,6 +420,14 @@ export const GameplayScreen: React.FC<GameplayScreenProps> = ({
                   <div className="flex justify-between">
                     <span className="text-gray-400">Magical Damage:</span>
                     <span className="text-purple-300">{Math.floor(totalStats.magic / 2) + 1}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Crit Chance:</span>
+                    <span className="text-orange-300">{5 + Math.max(0, totalStats.dexterity - 10)}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Escape Chance:</span>
+                    <span className="text-cyan-300">{25 + Math.max(0, totalStats.agility - 10)}%</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Max Health:</span>

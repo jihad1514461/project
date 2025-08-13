@@ -7,6 +7,8 @@ interface AdminClassesProps {
   classes: { [key: string]: ClassDefinition };
   classRequirements: { [key: string]: any };
   items: { [key: string]: Item };
+  gameData?: { races: { [key: string]: any } }; // Add this line
+  
   onCreateClass: (classData: any, requirementData?: any) => void;
   onUpdateClass: (classId: string, classData: any, requirementData?: any) => void;
   onDeleteClass: (classId: string) => void;
@@ -15,7 +17,7 @@ interface AdminClassesProps {
 export const AdminClasses: React.FC<AdminClassesProps> = ({ 
   classes, 
   classRequirements, 
-  items, 
+  items, gameData,
   onCreateClass,
   onUpdateClass,
   onDeleteClass
@@ -303,9 +305,43 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
             />
           </div>
 
+          {/* Race Restrictions */}
+          {/* Race Restrictions */}
+<div className="mb-6">
+  <label className="block text-sm font-medium text-gray-300 mb-2">
+    Race Restrictions
+  </label>
+  <SearchableSelect
+    options={gameData?.races ? Object.keys(gameData.races).map(raceName => ({ id: raceName, name: raceName })) : []}
+    value=""
+    onChange={() => {}}
+    multiple={true}
+    values={classData.raceRestrictions || []}
+    onMultiChange={(values) => setClassData(prev => ({ 
+      ...prev, 
+      raceRestrictions: values 
+    }))}
+    placeholder="Select restricted races (leave empty for no restrictions)"
+  />
+</div>
+
+          {/* Starting Action */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Starting Action
+            </label>
+            <input
+              type="text"
+              value={classData.startingAction || ''}
+              onChange={(e) => setClassData(prev => ({ ...prev, startingAction: e.target.value }))}
+              className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter starting action for this class"
+            />
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
             <h5 className="col-span-full text-sm font-semibold text-gray-300 mb-2">Base Class Stats (added when class is taken)</h5>
-            {(['strength', 'intelligence', 'magic', 'vitality', 'gold', 'reputation'] as const).map((stat) => (
+            {(['strength', 'intelligence', 'magic', 'vitality', 'dexterity', 'agility', 'luck', 'charm', 'gold', 'reputation'] as const).map((stat) => (
               <div key={stat}>
                 <label className="block text-sm font-medium text-gray-300 mb-2 capitalize flex items-center">
                   <span className="mr-1">
@@ -313,6 +349,10 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                     {stat === 'intelligence' && '🧠'}
                     {stat === 'magic' && '✨'}
                     {stat === 'vitality' && '❤️'}
+                    {stat === 'dexterity' && '🎯'}
+                    {stat === 'agility' && '💨'}
+                    {stat === 'luck' && '🍀'}
+                    {stat === 'charm' && '💫'}
                     {stat === 'gold' && '💰'}
                     {stat === 'reputation' && '👑'}
                   </span>
@@ -331,7 +371,7 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
             <h5 className="col-span-full text-sm font-semibold text-gray-300 mb-2">Stat Requirements (needed to unlock this class)</h5>
-            {(['strength', 'intelligence', 'magic', 'vitality', 'gold', 'reputation'] as const).map((stat) => (
+            {(['strength', 'intelligence', 'magic', 'vitality', 'dexterity', 'agility', 'luck', 'charm', 'gold', 'reputation'] as const).map((stat) => (
               <div key={stat}>
                 <label className="block text-sm font-medium text-gray-300 mb-2 capitalize flex items-center">
                   <span className="mr-1">
@@ -339,6 +379,10 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                     {stat === 'intelligence' && '🧠'}
                     {stat === 'magic' && '✨'}
                     {stat === 'vitality' && '❤️'}
+                    {stat === 'dexterity' && '🎯'}
+                    {stat === 'agility' && '💨'}
+                    {stat === 'luck' && '🍀'}
+                    {stat === 'charm' && '💫'}
                     {stat === 'gold' && '💰'}
                     {stat === 'reputation' && '👑'}
                   </span>
@@ -453,6 +497,14 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                 <span className="text-white font-medium">{classData.baseStats.vitality || 0}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-orange-400">🎯 Dexterity:</span>
+                <span className="text-white font-medium">{classData.baseStats.dexterity || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-cyan-400">💨 Agility:</span>
+                <span className="text-white font-medium">{classData.baseStats.agility || 0}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-yellow-400">🍀 Luck:</span>
                 <span className="text-white font-medium">{classData.baseStats.luck || 0}</span>
               </div>
@@ -470,14 +522,29 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
               </div>
             </div>
             
-            {classData.elementalRequirements.length > 0 && (
+            {/* In the classes list rendering */}
+{classData.elementalRequirements?.length > 0 && (
+  <div className="mt-3 pt-3 border-t border-slate-600">
+    <div className="text-xs text-gray-400">
+      Elements: {classData.elementalRequirements.join(', ')}
+    </div>
+  </div>
+)}
+            
+            {/* Race Restrictions and Starting Action */}
+            {(classData.raceRestrictions?.length > 0 || classData.startingAction) && (
               <div className="mt-3 pt-3 border-t border-slate-600">
-                <div className="text-xs text-gray-400">
-                  Elements: {classData.elementalRequirements.join(', ')}
+                <div className="text-xs text-gray-400 space-y-1">
+                  {classData.raceRestrictions?.length > 0 && (
+                    <div>Race Restrictions: {classData.raceRestrictions.join(', ')}</div>
+                  )}
+                  {classData.startingAction && (
+                    <div>Starting Action: {classData.startingAction}</div>
+                  )}
                 </div>
               </div>
             )}
-            
+
             {classRequirements[className] && (
               <div className="mt-2 pt-2 border-t border-slate-600">
                 <div className="text-xs text-gray-400 space-y-1">

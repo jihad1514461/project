@@ -90,7 +90,7 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({ player, onApplyLev
           </div>
 
           <div className="space-y-6">
-            {(['strength', 'intelligence', 'vitality', 'magic', 'luck', 'charm'] as Array<keyof PlayerStats>).map((stat) => {
+            {(['strength', 'intelligence', 'vitality', 'magic', 'dexterity', 'agility', 'luck', 'charm'] as Array<keyof PlayerStats>).map((stat) => {
               const currentValue = player.stats[stat];
               const increase = statIncreases[stat] || 0;
               const newValue = currentValue + increase;

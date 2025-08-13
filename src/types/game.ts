@@ -3,13 +3,15 @@ export interface PlayerStats {
   intelligence: number;
   vitality: number;
   magic: number;
+  dexterity: number;
+  agility: number;
   luck: number;
   charm: number;
   reputation: number;
   gold: number;
 }
 
-export type Element = 'Light' | 'Fire' | 'Water' | 'Earth' | 'Air' | 'Dark' | 'Neutral';
+export type Element = 'Light' | 'Fire' | 'Water' | 'Earth' | 'Air' | 'Dark' | 'Neutral' | 'Ice' | 'Lightning' | 'Nature' | 'Shadow' | 'Arcane';
 
 export interface Item {
   id: string;
@@ -144,6 +146,8 @@ export interface ClassDefinition {
   baseStats: Partial<PlayerStats>;
   elementalRequirements: Element[];
   requiredElements?: Element[];
+  raceRestrictions?: string[];
+  startingAction?: string;
   reputation: number;
   gold: number;
   description: string;
@@ -160,9 +164,16 @@ export interface Race {
     intelligence: number;
     vitality: number;
     magic: number;
+    dexterity: number;
+    agility: number;
+    luck: number;
+    charm: number;
     gold: number;
     reputation: number;
   };
+  elementalOffense?: Partial<Record<Element, number>>;
+  elementalDefense?: Partial<Record<Element, number>>;
+  innateAbility?: string;
   calculatedStats?: {
     health: number; // vitality × 10
     mana: number; // magic × 10
