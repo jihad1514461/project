@@ -10,10 +10,12 @@ interface AdminStoriesProps {
   monsters: { [key: string]: any };
   villains: { [key: string]: any };
   shops: { [key: string]: any };
-  onUpdateStories: (stories: { [storyName: string]: Story }) => void;
+  onCreateStory: (storyData: any) => void;
+  onUpdateStory: (storyId: string, storyData: any) => void;
+  onDeleteStory: (storyId: string) => void;
 }
 
-export const AdminStories: React.FC<AdminStoriesProps> = ({ stories, items, monsters, villains, shops, onUpdateStories }) => {
+export const AdminStories: React.FC<AdminStoriesProps> = ({ stories, items, monsters, villains, shops, onCreateStory, onUpdateStory, onDeleteStory }) => {
   const [selectedStory, setSelectedStory] = useState<string>('');
   const [editingNode, setEditingNode] = useState<string | null>(null);
   const [isCreatingStory, setIsCreatingStory] = useState(false);
@@ -41,19 +43,26 @@ export const AdminStories: React.FC<AdminStoriesProps> = ({ stories, items, mons
   const handleCreateStory = () => {
     if (!newStoryName.trim()) return;
     
-    const updatedStories = {
-      ...stories,
-      [newStoryName]: {
+    const newStoryData = {
+      id: newStoryName,
+      name: newStoryName,
+      nodes: {
         intro: {
+          id: 'intro',
+          title: 'Beginning',
           text: `Welcome to ${newStoryName}. Your adventure begins here.`,
+          type: 'story',
+          tags: [],
           battle: false,
-          choices: []
+          choices: [],
+          is_ending: false,
+          monster: '',
+          shop: { shopId: '', categories: [] }
         }
       }
     };
     
-    onUpdateStories(updatedStories);
-    gameDataManager.updateStories(updatedStories);
+    onCreateStory(newStoryData);
     setSelectedStory(newStoryName);
     setIsCreatingStory(false);
     setNewStoryName('');
@@ -61,10 +70,7 @@ export const AdminStories: React.FC<AdminStoriesProps> = ({ stories, items, mons
 
   const handleDeleteStory = (storyName: string) => {
     if (confirm(`Are you sure you want to delete "${storyName}"?`)) {
-      const updatedStories = { ...stories };
-      delete updatedStories[storyName];
-      onUpdateStories(updatedStories);
-      gameDataManager.updateStories(updatedStories);
+      onDeleteStory(storyName);
       if (selectedStory === storyName) {
         setSelectedStory('');
       }
@@ -98,10 +104,16 @@ export const AdminStories: React.FC<AdminStoriesProps> = ({ stories, items, mons
       ];
     }
     
-    const updatedStories = { ...stories };
+    const updatedStoryData = {
+      id: selectedStory,
+      name: selectedStory,
+      nodes: { ...stories[selectedStory] }
+    };
+    
     const nodeKey = isCreatingNode ? editingNode : editingNode;
-    updatedStories[selectedStory][nodeKey] = nodeData;
-    onUpdateStories(updatedStories);
+    updatedStoryData.nodes[nodeKey] = nodeData;
+    
+    onUpdateStory(selectedStory, updatedStoryData);
     
     setEditingNode(null);
     setIsCreatingNode(false);
@@ -116,10 +128,14 @@ export const AdminStories: React.FC<AdminStoriesProps> = ({ stories, items, mons
   const handleDeleteNode = (nodeKey: string) => {
     if (!selectedStory) return;
     if (confirm(`Are you sure you want to delete node "${nodeKey}"?`)) {
-      const updatedStories = { ...stories };
-      delete updatedStories[selectedStory][nodeKey];
-      onUpdateStories(updatedStories);
-      gameDataManager.updateStories(updatedStories);
+      const updatedStoryData = {
+        id: selectedStory,
+        name: selectedStory,
+        nodes: { ...stories[selectedStory] }
+      };
+      delete updatedStoryData.nodes[nodeKey];
+      
+      onUpdateStory(selectedStory, updatedStoryData);
     }
   };
 

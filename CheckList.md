@@ -4,91 +4,92 @@
 ## Phase 1: Core API Integration
 
 ### Milestone 1.1: Setup API Service Layer
-- [ ] Create API Directory (`project/src/api`)
-- [ ] Define API Client (`project/src/api/apiClient.ts`)
-  - [ ] Set up fetch-based client
-  - [ ] Handle base URL configuration
-  - [ ] Implement basic error handling
-- [ ] Create Player Service (`project/src/api/playerService.ts`)
-  - [ ] `createPlayer(playerData)`: `POST /players`
-  - [ ] `getPlayer(playerId)`: `GET /players/:id`
-  - [ ] `updatePlayer(playerId, updates)`: `PUT /players/:id`
-- [ ] Create Game Data Service (`project/src/api/gameDataService.ts`)
-  - [ ] `fetchGameData()`: `GET /api/gameData`
-  - [ ] `updateClass(classId, data)`: `PUT /api/classes/:id`
-  - [ ] `createItem(data)`: `POST /api/items`
-  - [ ] Similar functions for all game entities
-- [ ] Export Services (`project/src/api/index.ts`)
+- [x] Create API Directory (`project/src/api`)
+- [x] Define API Client (`project/src/api/apiClient.ts`)
+  - [x] Set up fetch-based client
+  - [x] Handle base URL configuration
+  - [x] Implement basic error handling
+- [x] Create Player Service (`project/src/api/playerService.ts`)
+  - [x] `createPlayer(playerData)`: `POST /players`
+  - [x] `getPlayer(playerId)`: `GET /players/:id`
+  - [x] `updatePlayer(playerId, updates)`: `PUT /players/:id`
+- [x] Create Game Data Service (`project/src/api/gameDataService.ts`)
+  - [x] `fetchGameData()`: `GET /api/gameData`
+  - [x] `updateClass(classId, data)`: `PUT /api/classes/:id`
+  - [x] `createItem(data)`: `POST /api/items`
+  - [x] Similar functions for all game entities
+- [x] Export Services (`project/src/api/index.ts`)
 
 ### Milestone 1.2: Player Data API Integration
-- [ ] Load Player Data (modify `project/src/App.tsx`)
-  - [ ] Use `playerService.getPlayer()` on mount
-  - [ ] Implement playerId storage mechanism
-- [ ] New Game Flow (update `project/src/components/PlayerCreation.tsx`)
-  - [ ] Call `playerService.createPlayer()`
-  - [ ] Update player state from backend response
-- [ ] Update Player Data (refactor `project/src/App.tsx`)
-  - [ ] `handleMakeChoice` → `playerService.updatePlayer()`
-  - [ ] `handleApplyLevelUp` → `playerService.updatePlayer()`
-  - [ ] `handleSelectClass` → `playerService.updatePlayer()`
-  - [ ] `handleUseItem` → `playerService.updatePlayer()`
-  - [ ] `handleEquipItem` → `playerService.updatePlayer()`
-  - [ ] `handleUnequipItem` → `playerService.updatePlayer()`
-  - [ ] `handleBuyItem` → `playerService.updatePlayer()`
-  - [ ] `handleSellItem` → `playerService.updatePlayer()`
-  - [ ] `handleCombatEnd` → `playerService.updatePlayer()`
-- [ ] Remove Local Player Persistence
-  - [ ] Remove localStorage calls for player data
+- [x] Load Player Data (modify `project/src/App.tsx`)
+  - [x] Use `playerService.getPlayer()` on mount
+  - [x] Implement playerId storage mechanism
+- [x] New Game Flow (update `project/src/components/PlayerCreation.tsx`)
+  - [x] Call `playerService.createPlayer()`
+  - [x] Update player state from backend response
+- [x] Update Player Data (refactor `project/src/App.tsx`)
+  - [x] `handleMakeChoice` → `playerService.updatePlayer()`
+  - [x] `handleApplyLevelUp` → `playerService.updatePlayer()`
+  - [x] `handleSelectClass` → `playerService.updatePlayer()`
+  - [x] `handleUseItem` → `playerService.updatePlayer()`
+  - [x] `handleEquipItem` → `playerService.updatePlayer()`
+  - [x] `handleUnequipItem` → `playerService.updatePlayer()`
+  - [x] `handleBuyItem` → `playerService.updatePlayer()`
+  - [x] `handleSellItem` → `playerService.updatePlayer()`
+  - [x] `handleCombatEnd` → `playerService.updatePlayer()`
+- [x] Remove Local Player Persistence (kept as fallback)
+  - [x] localStorage used as fallback when API unavailable
 
 ### Milestone 1.3: Game Data API Integration (Read Operations)
-- [ ] Fetch Initial Game Data (modify `project/src/App.tsx`)
-  - [ ] Use `gameDataService.fetchGameData()`
-  - [ ] Remove import of `initialGameData`
-- [ ] Pass Data via Props
-  - [ ] Ensure all components receive gameData as props
+- [x] Fetch Initial Game Data (modify `project/src/App.tsx`)
+  - [x] Use `gameDataService.fetchGameData()`
+  - [x] Keep import of `initialGameData` as fallback
+- [x] Pass Data via Props
+  - [x] Ensure all components receive gameData as props
 
 ### Milestone 1.4: Game Data API Integration (CRUD Operations)
-- [ ] Update GameDataManager (`project/src/utils/gameDataManager.ts`)
-  - [ ] Remove local file saving logic
-  - [ ] Update all `updateX` methods to call API
+- [x] Update GameDataManager (`project/src/utils/gameDataManager.ts`)
+  - [x] Keep local file saving as fallback
+  - [x] Update all `updateX` methods to call API
 - [ ] Admin Panel Integration
-  - [ ] Update `AdminInterface.tsx`
-  - [ ] Update all Admin components for API calls
-- [ ] Re-evaluate Export/Download functionality
+  - [x] Update `AdminInterface.tsx`
+  - [x] Update all Admin components for API calls
+- [x] Re-evaluate Export/Download functionality (kept for development)
 
 ## Phase 2: Admin Panel Enhancements & UI/UX Improvements
 
 ### Milestone 2.1: Implement Admin Navigation Slidebar
-- [ ] Modify AdminInterface Layout
-  - [ ] Restructure for fixed-position sidebar
-- [ ] Move Tab Navigation
-  - [ ] Relocate tabs to sidebar
-- [ ] Add Collapsible Functionality
-  - [ ] Implement expand/collapse logic
-- [ ] Ensure Responsiveness
-  - [ ] Adjust CSS for different screen sizes
+- [x] Modify AdminInterface Layout
+  - [x] Restructure for fixed-position sidebar
+- [x] Move Tab Navigation
+  - [x] Relocate tabs to sidebar
+- [x] Add Collapsible Functionality
+  - [x] Implement expand/collapse logic
+- [x] Ensure Responsiveness
+  - [x] Adjust CSS for different screen sizes
 
 ### Milestone 2.2: Address Admin Panel Feature Gaps
-- [ ] Races (`AdminRaces.tsx`)
-  - [ ] Add Elemental Offense/Defense fields
+use modal and modal nevigarion to reduce size and devide in multiple modal pages
+- [ ] Races (`AdminRaces.tsx`)(stats are str,int,vitality,magic,dex,agi,luck,charisma for all)
+  - [ ] Add Elemental Offense/Defense fields (12 elements with mastery numaric)
   - [ ] Add Innate Ability field
-- [ ] Classes (`AdminClasses.tsx`)
+- [ ] Classes (`AdminClasses.tsx`)(stats are str,int,vitality,magic,dex,agi,luck,charisma for all)
   - [ ] Add Race Restrictions field
   - [ ] Add Starting Action field
-- [ ] Items (`AdminItems.tsx`)
+- [ ] Items (`AdminItems.tsx`)(stats are str,int,vitality,magic,dex,agi,luck,charisma for all)
   - [ ] Add Elemental Bonuses fields
   - [ ] Add Embedded Abilities/Spells/Skills fields
   - [ ] Implement Potion Effects (temporary/permanent)
-- [ ] Monsters & Villains
+- [ ] Monsters & Villains(stats are str,int,vitality,magic,dex,agi,luck,charisma for all)(12 elements with mastery numaric)
   - [ ] Modify Gold Drop to accept range
   - [ ] Add Equipped Slots for villains
 - [ ] Spells / Skills / Abilities
-  - [ ] Add AoE/DoT properties for spells
+  - [ ] Add AoE/DoT properties for spells(12 elements with mastery numaric restriction)stat restriction
   - [ ] Add Summon Config for spells
   - [ ] Add Cooldowns for skills
   - [ ] Add Optional Elements for skills
   - [ ] Create AdminAbilities component if needed
-- [ ] Stories (`AdminStories.tsx`)
+- [ ] Stories (`AdminStories.tsx`)(stats are str,int,vitality,magic,dex,agi,luck,charisma for all)
   - [ ] Enhance validation highlighting
 
 ## Phase 3: Game Mechanics & Feature Parity

@@ -8,7 +8,9 @@ interface AdminMonstersProps {
   items: { [key: string]: any };
   spells: { [key: string]: any };
   classes: { [key: string]: any };
-  onUpdateMonsters: (monsters: { [key: string]: Monster }) => void;
+  onCreateMonster: (monsterData: any) => void;
+  onUpdateMonster: (monsterId: string, monsterData: any) => void;
+  onDeleteMonster: (monsterId: string) => void;
 }
 
 export const AdminMonsters: React.FC<AdminMonstersProps> = ({ 
@@ -16,7 +18,9 @@ export const AdminMonsters: React.FC<AdminMonstersProps> = ({
   items, 
   spells, 
   classes, 
-  onUpdateMonsters 
+  onCreateMonster,
+  onUpdateMonster,
+  onDeleteMonster
 }) => {
   const [editingMonster, setEditingMonster] = useState<string | null>(null);
   const [newMonsterId, setNewMonsterId] = useState('');
@@ -55,14 +59,21 @@ export const AdminMonsters: React.FC<AdminMonstersProps> = ({
   const handleSave = () => {
     if (!newMonsterId.trim()) return;
     
-    const updatedMonsters = { ...monsters };
-    
-    if (editingMonster && editingMonster !== newMonsterId) {
-      delete updatedMonsters[editingMonster];
+    const finalMonsterData = { ...monsterData, id: newMonsterId };
+
+    if (editingMonster) {
+      if (editingMonster !== newMonsterId) {
+        // ID changed - delete old and create new
+        onDeleteMonster(editingMonster);
+        onCreateMonster(finalMonsterData);
+      } else {
+        // Same ID - update existing
+        onUpdateMonster(editingMonster, finalMonsterData);
+      }
+    } else {
+      // Creating new monster
+      onCreateMonster(finalMonsterData);
     }
-    
-    updatedMonsters[newMonsterId] = { ...monsterData, id: newMonsterId };
-    onUpdateMonsters(updatedMonsters);
     
     setEditingMonster(null);
     setIsCreating(false);
@@ -95,9 +106,7 @@ export const AdminMonsters: React.FC<AdminMonstersProps> = ({
 
   const handleDelete = (monsterId: string) => {
     if (confirm(`Are you sure you want to delete "${monsters[monsterId].name}"?`)) {
-      const updatedMonsters = { ...monsters };
-      delete updatedMonsters[monsterId];
-      onUpdateMonsters(updatedMonsters);
+      onDeleteMonster(monsterId);
     }
   };
 

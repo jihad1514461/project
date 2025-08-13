@@ -200,6 +200,7 @@ export interface Class {
 }
 
 export interface Player {
+  id?: string;
   name: string;
   gender: 'male' | 'female' | 'other';
   race: string;

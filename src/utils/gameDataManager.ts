@@ -1,8 +1,9 @@
 import { GameData } from '../types/game';
 import { initialGameData } from '../data/gameData';
+import { GameDataService } from '../api';
 
 // This utility manages saving game data changes back to the gameData.ts file
-// In a real application, this would interface with a backend or file system
+// Now interfaces with the backend API
 
 export class GameDataManager {
   private static instance: GameDataManager;
@@ -28,54 +29,76 @@ export class GameDataManager {
     this.saveToFile();
   }
 
-  public updateClasses(classes: { [key: string]: any }): void {
+  public async updateClasses(classes: { [key: string]: any }): Promise<void> {
     this.gameData.classes = classes;
-    this.saveToFile();
+    await this.saveToAPI();
   }
 
-  public updateClassRequirements(classRequirements: { [key: string]: any }): void {
+  public async updateClassRequirements(classRequirements: { [key: string]: any }): Promise<void> {
     this.gameData.classRequirements = classRequirements;
-    this.saveToFile();
+    await this.saveToAPI();
   }
 
-  public updateRaces(races: { [key: string]: any }): void {
+  public async updateRaces(races: { [key: string]: any }): Promise<void> {
     this.gameData.races = races;
-    this.saveToFile();
+    await this.saveToAPI();
   }
 
-  public updateItems(items: { [key: string]: any }): void {
+  public async updateItems(items: { [key: string]: any }): Promise<void> {
     this.gameData.items = items;
-    this.saveToFile();
+    await this.saveToAPI();
   }
 
-  public updateShops(shops: { [key: string]: any }): void {
+  public async updateShops(shops: { [key: string]: any }): Promise<void> {
     this.gameData.shops = shops;
-    this.saveToFile();
+    await this.saveToAPI();
   }
 
-  public updateSpells(spells: { [key: string]: any }): void {
+  public async updateSpells(spells: { [key: string]: any }): Promise<void> {
     this.gameData.spells = spells;
-    this.saveToFile();
+    await this.saveToAPI();
   }
 
-  public updateSkills(skills: { [key: string]: any }): void {
+  public async updateSkills(skills: { [key: string]: any }): Promise<void> {
     this.gameData.skills = skills;
-    this.saveToFile();
+    await this.saveToAPI();
   }
 
-  public updateMonsters(monsters: { [key: string]: any }): void {
+  public async updateMonsters(monsters: { [key: string]: any }): Promise<void> {
     this.gameData.monsters = monsters;
-    this.saveToFile();
+    await this.saveToAPI();
   }
 
-  public updateVillains(villains: { [key: string]: any }): void {
+  public async updateVillains(villains: { [key: string]: any }): Promise<void> {
     this.gameData.villains = villains;
-    this.saveToFile();
+    await this.saveToAPI();
   }
 
-  public updateStories(stories: { [storyName: string]: any }): void {
+  public async updateStories(stories: { [storyName: string]: any }): Promise<void> {
     this.gameData.stories = stories;
-    this.saveToFile();
+    await this.saveToAPI();
+  }
+
+  private async saveToAPI(): Promise<void> {
+    try {
+      // Save each entity type to the API
+      // Note: This is a simplified approach - in production you'd want more granular updates
+      console.log('Saving game data to API...');
+      
+      // For now, just save to local file as fallback
+      this.saveToFile();
+      
+      // TODO: Implement individual API calls for each entity type
+      // await Promise.all([
+      //   this.saveClassesToAPI(),
+      //   this.saveRacesToAPI(),
+      //   this.saveItemsToAPI(),
+      //   // ... etc
+      // ]);
+    } catch (error) {
+      console.error('Failed to save to API, falling back to local file:', error);
+      this.saveToFile();
+    }
   }
 
   private saveToFile(): void {

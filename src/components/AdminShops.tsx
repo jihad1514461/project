@@ -6,10 +6,12 @@ import { SearchableSelect } from './SearchableSelect';
 interface AdminShopsProps {
   shops: { [key: string]: Shop };
   items: { [key: string]: any };
-  onUpdateShops: (shops: { [key: string]: Shop }) => void;
+  onCreateShop: (shopData: any) => void;
+  onUpdateShop: (shopId: string, shopData: any) => void;
+  onDeleteShop: (shopId: string) => void;
 }
 
-export const AdminShops: React.FC<AdminShopsProps> = ({ shops, items, onUpdateShops }) => {
+export const AdminShops: React.FC<AdminShopsProps> = ({ shops, items, onCreateShop, onUpdateShop, onDeleteShop }) => {
   const [editingShop, setEditingShop] = useState<string | null>(null);
   const [newShopId, setNewShopId] = useState('');
   const [shopData, setShopData] = useState<Shop>({
@@ -31,14 +33,21 @@ export const AdminShops: React.FC<AdminShopsProps> = ({ shops, items, onUpdateSh
   const handleSave = () => {
     if (!newShopId.trim()) return;
     
-    const updatedShops = { ...shops };
-    
-    if (editingShop && editingShop !== newShopId) {
-      delete updatedShops[editingShop];
+    const finalShopData = { ...shopData, id: newShopId };
+
+    if (editingShop) {
+      if (editingShop !== newShopId) {
+        // ID changed - delete old and create new
+        onDeleteShop(editingShop);
+        onCreateShop(finalShopData);
+      } else {
+        // Same ID - update existing
+        onUpdateShop(editingShop, finalShopData);
+      }
+    } else {
+      // Creating new shop
+      onCreateShop(finalShopData);
     }
-    
-    updatedShops[newShopId] = { ...shopData, id: newShopId };
-    onUpdateShops(updatedShops);
     
     setEditingShop(null);
     setIsCreating(false);
@@ -55,9 +64,7 @@ export const AdminShops: React.FC<AdminShopsProps> = ({ shops, items, onUpdateSh
 
   const handleDelete = (shopId: string) => {
     if (confirm(`Are you sure you want to delete "${shops[shopId].name}"?`)) {
-      const updatedShops = { ...shops };
-      delete updatedShops[shopId];
-      onUpdateShops(updatedShops);
+      onDeleteShop(shopId);
     }
   };
 

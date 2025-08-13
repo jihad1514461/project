@@ -6,10 +6,12 @@ import { SearchableSelect } from './SearchableSelect';
 interface AdminSpellsProps {
   spells: { [key: string]: Spell };
   classes: { [key: string]: any };
-  onUpdateSpells: (spells: { [key: string]: Spell }) => void;
+  onCreateSpell: (spellData: any) => void;
+  onUpdateSpell: (spellId: string, spellData: any) => void;
+  onDeleteSpell: (spellId: string) => void;
 }
 
-export const AdminSpells: React.FC<AdminSpellsProps> = ({ spells, classes, onUpdateSpells }) => {
+export const AdminSpells: React.FC<AdminSpellsProps> = ({ spells, classes, onCreateSpell, onUpdateSpell, onDeleteSpell }) => {
   const [editingSpell, setEditingSpell] = useState<string | null>(null);
   const [newSpellId, setNewSpellId] = useState('');
   const [spellData, setSpellData] = useState<Spell>({
@@ -36,14 +38,21 @@ export const AdminSpells: React.FC<AdminSpellsProps> = ({ spells, classes, onUpd
   const handleSave = () => {
     if (!newSpellId.trim()) return;
     
-    const updatedSpells = { ...spells };
-    
-    if (editingSpell && editingSpell !== newSpellId) {
-      delete updatedSpells[editingSpell];
+    const finalSpellData = { ...spellData, id: newSpellId };
+
+    if (editingSpell) {
+      if (editingSpell !== newSpellId) {
+        // ID changed - delete old and create new
+        onDeleteSpell(editingSpell);
+        onCreateSpell(finalSpellData);
+      } else {
+        // Same ID - update existing
+        onUpdateSpell(editingSpell, finalSpellData);
+      }
+    } else {
+      // Creating new spell
+      onCreateSpell(finalSpellData);
     }
-    
-    updatedSpells[newSpellId] = { ...spellData, id: newSpellId };
-    onUpdateSpells(updatedSpells);
     
     setEditingSpell(null);
     setIsCreating(false);
@@ -65,9 +74,7 @@ export const AdminSpells: React.FC<AdminSpellsProps> = ({ spells, classes, onUpd
 
   const handleDelete = (spellId: string) => {
     if (confirm(`Are you sure you want to delete "${spells[spellId].name}"?`)) {
-      const updatedSpells = { ...spells };
-      delete updatedSpells[spellId];
-      onUpdateSpells(updatedSpells);
+      onDeleteSpell(spellId);
     }
   };
 

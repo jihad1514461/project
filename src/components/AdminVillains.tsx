@@ -8,7 +8,9 @@ interface AdminVillainsProps {
   items: { [key: string]: any };
   spells: { [key: string]: any };
   classes: { [key: string]: any };
-  onUpdateVillains: (villains: { [key: string]: Villain }) => void;
+  onCreateVillain: (villainData: any) => void;
+  onUpdateVillain: (villainId: string, villainData: any) => void;
+  onDeleteVillain: (villainId: string) => void;
 }
 
 export const AdminVillains: React.FC<AdminVillainsProps> = ({ 
@@ -16,7 +18,9 @@ export const AdminVillains: React.FC<AdminVillainsProps> = ({
   items, 
   spells, 
   classes, 
-  onUpdateVillains 
+  onCreateVillain,
+  onUpdateVillain,
+  onDeleteVillain
 }) => {
   const [editingVillain, setEditingVillain] = useState<string | null>(null);
   const [newVillainId, setNewVillainId] = useState('');
@@ -58,14 +62,21 @@ export const AdminVillains: React.FC<AdminVillainsProps> = ({
   const handleSave = () => {
     if (!newVillainId.trim()) return;
     
-    const updatedVillains = { ...villains };
-    
-    if (editingVillain && editingVillain !== newVillainId) {
-      delete updatedVillains[editingVillain];
+    const finalVillainData = { ...villainData, id: newVillainId };
+
+    if (editingVillain) {
+      if (editingVillain !== newVillainId) {
+        // ID changed - delete old and create new
+        onDeleteVillain(editingVillain);
+        onCreateVillain(finalVillainData);
+      } else {
+        // Same ID - update existing
+        onUpdateVillain(editingVillain, finalVillainData);
+      }
+    } else {
+      // Creating new villain
+      onCreateVillain(finalVillainData);
     }
-    
-    updatedVillains[newVillainId] = { ...villainData, id: newVillainId };
-    onUpdateVillains(updatedVillains);
     
     setEditingVillain(null);
     setIsCreating(false);
@@ -101,9 +112,7 @@ export const AdminVillains: React.FC<AdminVillainsProps> = ({
 
   const handleDelete = (villainId: string) => {
     if (confirm(`Are you sure you want to delete "${villains[villainId].name}"?`)) {
-      const updatedVillains = { ...villains };
-      delete updatedVillains[villainId];
-      onUpdateVillains(updatedVillains);
+      onDeleteVillain(villainId);
     }
   };
 

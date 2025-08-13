@@ -4,10 +4,12 @@ import { Item } from '../types/game';
 
 interface AdminItemsProps {
   items: { [key: string]: Item };
-  onUpdateItems: (items: { [key: string]: Item }) => void;
+  onCreateItem: (itemData: any) => void;
+  onUpdateItem: (itemId: string, itemData: any) => void;
+  onDeleteItem: (itemId: string) => void;
 }
 
-export const AdminItems: React.FC<AdminItemsProps> = ({ items, onUpdateItems }) => {
+export const AdminItems: React.FC<AdminItemsProps> = ({ items, onCreateItem, onUpdateItem, onDeleteItem }) => {
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [newItemId, setNewItemId] = useState('');
   const [itemData, setItemData] = useState<Item>({
@@ -30,14 +32,21 @@ export const AdminItems: React.FC<AdminItemsProps> = ({ items, onUpdateItems }) 
   const handleSave = () => {
     if (!newItemId.trim()) return;
     
-    const updatedItems = { ...items };
-    
-    if (editingItem && editingItem !== newItemId) {
-      delete updatedItems[editingItem];
+    const finalItemData = { ...itemData, id: newItemId };
+
+    if (editingItem) {
+      if (editingItem !== newItemId) {
+        // ID changed - delete old and create new
+        onDeleteItem(editingItem);
+        onCreateItem(finalItemData);
+      } else {
+        // Same ID - update existing
+        onUpdateItem(editingItem, finalItemData);
+      }
+    } else {
+      // Creating new item
+      onCreateItem(finalItemData);
     }
-    
-    updatedItems[newItemId] = { ...itemData, id: newItemId };
-    onUpdateItems(updatedItems);
     
     setEditingItem(null);
     setIsCreating(false);
@@ -55,9 +64,7 @@ export const AdminItems: React.FC<AdminItemsProps> = ({ items, onUpdateItems }) 
 
   const handleDelete = (itemId: string) => {
     if (confirm(`Are you sure you want to delete "${items[itemId].name}"?`)) {
-      const updatedItems = { ...items };
-      delete updatedItems[itemId];
-      onUpdateItems(updatedItems);
+      onDeleteItem(itemId);
     }
   };
 

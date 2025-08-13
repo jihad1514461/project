@@ -4,10 +4,12 @@ import { PlayerStats } from '../types/game';
 
 interface AdminRacesProps {
   races: { [key: string]: Partial<PlayerStats> };
-  onUpdateRaces: (races: { [key: string]: Partial<PlayerStats> }) => void;
+  onCreateRace: (raceId: string, raceData: any) => void;
+  onUpdateRace: (raceId: string, raceData: any) => void;
+  onDeleteRace: (raceId: string) => void;
 }
 
-export const AdminRaces: React.FC<AdminRacesProps> = ({ races, onUpdateRaces }) => {
+export const AdminRaces: React.FC<AdminRacesProps> = ({ races, onCreateRace, onUpdateRace, onDeleteRace }) => {
   const [editingRace, setEditingRace] = useState<string | null>(null);
   const [newRaceName, setNewRaceName] = useState('');
   const [raceStats, setRaceStats] = useState<Partial<PlayerStats>>({});
@@ -22,14 +24,19 @@ export const AdminRaces: React.FC<AdminRacesProps> = ({ races, onUpdateRaces }) 
   const handleSave = () => {
     if (!newRaceName.trim()) return;
     
-    const updatedRaces = { ...races };
-    
-    if (editingRace && editingRace !== newRaceName) {
-      delete updatedRaces[editingRace];
+    if (editingRace) {
+      if (editingRace !== newRaceName) {
+        // ID changed - delete old and create new
+        onDeleteRace(editingRace);
+        onCreateRace(newRaceName, raceStats);
+      } else {
+        // Same ID - update existing
+        onUpdateRace(editingRace, raceStats);
+      }
+    } else {
+      // Creating new race
+      onCreateRace(newRaceName, raceStats);
     }
-    
-    updatedRaces[newRaceName] = raceStats;
-    onUpdateRaces(updatedRaces);
     
     setEditingRace(null);
     setIsCreating(false);
@@ -39,9 +46,7 @@ export const AdminRaces: React.FC<AdminRacesProps> = ({ races, onUpdateRaces }) 
 
   const handleDelete = (raceName: string) => {
     if (confirm(`Are you sure you want to delete the ${raceName} race?`)) {
-      const updatedRaces = { ...races };
-      delete updatedRaces[raceName];
-      onUpdateRaces(updatedRaces);
+      onDeleteRace(raceName);
     }
   };
 

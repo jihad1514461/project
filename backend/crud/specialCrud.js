@@ -1,5 +1,5 @@
 // crud/specialCrud.js
-const pool = require('../utils/db');
+const pool = require('../services/db');
 
 /**
  * ---------------- GET HELPERS ----------------

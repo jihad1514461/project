@@ -6,10 +6,12 @@ import { SearchableSelect } from './SearchableSelect';
 interface AdminSkillsProps {
   skills: { [key: string]: Skill };
   classes: { [key: string]: any };
-  onUpdateSkills: (skills: { [key: string]: Skill }) => void;
+  onCreateSkill: (skillData: any) => void;
+  onUpdateSkill: (skillId: string, skillData: any) => void;
+  onDeleteSkill: (skillId: string) => void;
 }
 
-export const AdminSkills: React.FC<AdminSkillsProps> = ({ skills, classes, onUpdateSkills }) => {
+export const AdminSkills: React.FC<AdminSkillsProps> = ({ skills, classes, onCreateSkill, onUpdateSkill, onDeleteSkill }) => {
   const [editingSkill, setEditingSkill] = useState<string | null>(null);
   const [newSkillId, setNewSkillId] = useState('');
   const [skillData, setSkillData] = useState<Skill>({
@@ -35,14 +37,21 @@ export const AdminSkills: React.FC<AdminSkillsProps> = ({ skills, classes, onUpd
   const handleSave = () => {
     if (!newSkillId.trim()) return;
     
-    const updatedSkills = { ...skills };
-    
-    if (editingSkill && editingSkill !== newSkillId) {
-      delete updatedSkills[editingSkill];
+    const finalSkillData = { ...skillData, id: newSkillId };
+
+    if (editingSkill) {
+      if (editingSkill !== newSkillId) {
+        // ID changed - delete old and create new
+        onDeleteSkill(editingSkill);
+        onCreateSkill(finalSkillData);
+      } else {
+        // Same ID - update existing
+        onUpdateSkill(editingSkill, finalSkillData);
+      }
+    } else {
+      // Creating new skill
+      onCreateSkill(finalSkillData);
     }
-    
-    updatedSkills[newSkillId] = { ...skillData, id: newSkillId };
-    onUpdateSkills(updatedSkills);
     
     setEditingSkill(null);
     setIsCreating(false);
@@ -63,9 +72,7 @@ export const AdminSkills: React.FC<AdminSkillsProps> = ({ skills, classes, onUpd
 
   const handleDelete = (skillId: string) => {
     if (confirm(`Are you sure you want to delete "${skills[skillId].name}"?`)) {
-      const updatedSkills = { ...skills };
-      delete updatedSkills[skillId];
-      onUpdateSkills(updatedSkills);
+      onDeleteSkill(skillId);
     }
   };
 

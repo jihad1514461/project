@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Home } from 'lucide-react';
+import { PlayerService, GameDataService } from './api';
+import { initialGameData } from './data/gameData';
 import { StartScreen } from './components/StartScreen';
 import { AdminAuth } from './components/AdminAuth';
 import { AdminEntry } from './components/AdminEntry';
@@ -25,7 +27,6 @@ import {
   ClassDefinition,
   CombatState,
 } from './types/game';
-import { initialGameData } from './data/gameData';
 import {
   createPlayer,
   canLevelUp,
@@ -45,31 +46,74 @@ import {
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<GameScreen>('start');
-  const [gameData, setGameData] = useState<GameData>(initialGameData);
+  const [gameData, setGameData] = useState<GameData | null>(null);
   const [player, setPlayer] = useState<Player | null>(null);
+  const [playerId, setPlayerId] = useState<string | null>(null);
   const [selectedStory, setSelectedStory] = useState<string>('');
   const [currentShop, setCurrentShop] = useState<string>('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [combatState, setCombatState] = useState<CombatState | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load saved player data on component mount
+  // Load game data and player data on component mount
   useEffect(() => {
-    const savedPlayer = localStorage.getItem('rpg-player');
-    if (savedPlayer) {
-      try {
-        setPlayer(JSON.parse(savedPlayer));
-      } catch (error) {
-        console.error('Failed to load saved player:', error);
-      }
-    }
+    initializeApp();
   }, []);
 
-  // Save player data whenever it changes
-  useEffect(() => {
-    if (player) {
-      localStorage.setItem('rpg-player', JSON.stringify(player));
+  const initializeApp = async () => {
+    try {
+      setLoading(true);
+      
+      // For now, use local game data until backend is fully set up
+      // TODO: Replace with API call once backend is ready
+      setGameData(initialGameData);
+
+      // Check for saved player ID
+      const savedPlayerId = localStorage.getItem('rpg-player-id');
+      if (savedPlayerId) {
+        try {
+          const playerResponse = await PlayerService.getPlayer(savedPlayerId);
+          if (playerResponse.success) {
+            setPlayer(playerResponse.data);
+            setPlayerId(savedPlayerId);
+          } else {
+            // Player not found, clear saved ID
+            localStorage.removeItem('rpg-player-id');
+          }
+        } catch (error) {
+          console.warn('Failed to load player from API, using local storage fallback');
+          localStorage.removeItem('rpg-player-id');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize app:', error);
+      setError(error instanceof Error ? error.message : 'Failed to initialize app');
+    } finally {
+      setLoading(false);
     }
-  }, [player]);
+  };
+
+  // Save player data to API whenever it changes
+  const savePlayerData = async (updatedPlayer: Player) => {
+    if (!playerId) {
+      console.warn('No player ID available for saving');
+      return;
+    }
+    
+    try {
+      const response = await PlayerService.updatePlayer(playerId, updatedPlayer);
+      if (!response.success) {
+        console.error('Failed to save player data:', response.error);
+        // Fallback to localStorage if API fails
+        localStorage.setItem('rpg-player-data', JSON.stringify(updatedPlayer));
+      }
+    } catch (error) {
+      console.error('Failed to save player data:', error);
+      // Fallback to localStorage if API fails
+      localStorage.setItem('rpg-player-data', JSON.stringify(updatedPlayer));
+    }
+  };
 
   const handleGoHome = () => {
     setCurrentScreen('start');
@@ -96,7 +140,8 @@ function App() {
     } else {
       // Clear existing player data for new game
       setPlayer(null);
-      localStorage.removeItem('rpg-player');
+      setPlayerId(null);
+      localStorage.removeItem('rpg-player-id');
       setCurrentScreen('player-creation');
     }
   };
@@ -107,6 +152,8 @@ function App() {
     race: string,
     playerClass: string
   ) => {
+    if (!gameData) return;
+    
     const raceStats = gameData.races[race] || {};
     const classData = gameData.classes[playerClass] as ClassDefinition;
     if (!classData) return;
@@ -120,8 +167,35 @@ function App() {
       classData
     );
 
-    setPlayer(newPlayer);
-    setCurrentScreen('story-selection');
+    // Try to save new player to API, fallback to local storage
+    PlayerService.createPlayer(newPlayer).then(response => {
+      if (response.success && response.data.id) {
+        setPlayer(response.data);
+        setPlayerId(response.data.id);
+        localStorage.setItem('rpg-player-id', response.data.id);
+        setCurrentScreen('story-selection');
+      } else {
+        console.warn('API creation failed, using local player');
+        // Generate a local ID and continue
+        const localId = 'local-' + Date.now();
+        const localPlayer = { ...newPlayer, id: localId };
+        setPlayer(localPlayer);
+        setPlayerId(localId);
+        localStorage.setItem('rpg-player-id', localId);
+        localStorage.setItem('rpg-player-data', JSON.stringify(localPlayer));
+        setCurrentScreen('story-selection');
+      }
+    }).catch(error => {
+      console.warn('API unavailable, using local player');
+      // Generate a local ID and continue
+      const localId = 'local-' + Date.now();
+      const localPlayer = { ...newPlayer, id: localId };
+      setPlayer(localPlayer);
+      setPlayerId(localId);
+      localStorage.setItem('rpg-player-id', localId);
+      localStorage.setItem('rpg-player-data', JSON.stringify(localPlayer));
+      setCurrentScreen('story-selection');
+    });
   };
 
   const handleSelectStory = (storyName: string) => {
@@ -140,7 +214,7 @@ function App() {
   };
 
   const handleMakeChoice = (choice: Choice) => {
-    if (!player || !selectedStory) return;
+    if (!player || !selectedStory || !gameData) return;
 
     // Apply choice effects
     let updatedPlayer = applyChoiceEffects(player, choice, gameData.items);
@@ -149,7 +223,8 @@ function App() {
     if (updatedPlayer.hearts <= 0) {
       alert('Your hero has fallen! The adventure ends here.');
       setPlayer(null);
-      localStorage.removeItem('rpg-player');
+      setPlayerId(null);
+      localStorage.removeItem('rpg-player-id');
       setCurrentScreen('start');
       return;
     }
@@ -174,6 +249,7 @@ function App() {
     }
 
     setPlayer(updatedPlayer);
+    savePlayerData(updatedPlayer);
   };
 
   const handleApplyLevelUp = (statIncreases: {
@@ -209,15 +285,17 @@ function App() {
     }
 
     setPlayer(updatedPlayer);
+    savePlayerData(updatedPlayer);
     setCurrentScreen('gameplay');
   };
 
   const handleSelectClass = (className: string) => {
-    if (!player) return;
+    if (!player || !gameData) return;
 
     const classData = gameData.classes[className] as ClassDefinition;
     const updatedPlayer = addClassToPlayer(player, className, classData);
     setPlayer(updatedPlayer);
+    savePlayerData(updatedPlayer);
     setCurrentScreen('gameplay');
   };
 
@@ -232,6 +310,7 @@ function App() {
     }
 
     setPlayer(updatedPlayer);
+    savePlayerData(updatedPlayer);
     setCurrentScreen('gameplay');
   };
 
@@ -240,22 +319,25 @@ function App() {
 
     const updatedPlayer = useItem(player, item);
     setPlayer(updatedPlayer);
+    savePlayerData(updatedPlayer);
   };
 
   const handleEquipItem = (item: any) => {
     if (!player) return;
     const updatedPlayer = equipItem(player, item);
     setPlayer(updatedPlayer);
+    savePlayerData(updatedPlayer);
   };
 
   const handleUnequipItem = (slot: keyof Equipment) => {
     if (!player) return;
     const updatedPlayer = unequipItem(player, slot);
     setPlayer(updatedPlayer);
+    savePlayerData(updatedPlayer);
   };
 
   const handleBuyItem = (item: ShopItem) => {
-    if (!player) return;
+    if (!player || !gameData) return;
 
     const shop = gameData.shops[currentShop];
     if (!shop) return;
@@ -285,7 +367,7 @@ function App() {
 
     setPlayer(updatedPlayer);
     setGameData(updatedGameData);
-    localStorage.setItem('rpg-game-data', JSON.stringify(updatedGameData));
+    savePlayerData(updatedPlayer);
   };
 
   const handleSellItem = (item: any) => {
@@ -303,6 +385,7 @@ function App() {
     updatedPlayer = removeItemFromInventory(updatedPlayer, item.id, 1);
 
     setPlayer(updatedPlayer);
+    savePlayerData(updatedPlayer);
   };
 
   const handleOpenShop = (shopId: string) => {
@@ -339,6 +422,8 @@ function App() {
 
   const handleCombatEnd = (result: 'win' | 'lose' | 'escape', updatedPlayer: Player) => {
     // Apply combat results
+    if (!gameData) return;
+    
     let finalPlayer = { ...updatedPlayer };
     if (result === 'win') {
       // Apply rewards for victory
@@ -406,15 +491,51 @@ function App() {
     setPlayer(finalPlayer);
     setCombatState(null);
     setCurrentScreen('gameplay');
+    savePlayerData(finalPlayer);
   };
 
   const getCurrentStoryNode = () => {
-    if (!player || !selectedStory || !gameData.stories[selectedStory]) {
+    if (!player || !selectedStory || !gameData || !gameData.stories[selectedStory]) {
       return null;
     }
 
     return gameData.stories[selectedStory][player.currentNode] || null;
   };
+
+  // Show loading screen
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white text-xl">Loading RPG Quest...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error screen
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-red-900/50 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-red-700 text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Connection Error</h2>
+          <p className="text-red-200 mb-6">{error}</p>
+          <button
+            onClick={initializeApp}
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if gameData is not loaded
+  if (!gameData) {
+    return null;
+  }
 
   const renderCurrentScreen = () => {
     switch (currentScreen) {

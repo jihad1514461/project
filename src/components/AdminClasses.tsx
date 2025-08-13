@@ -7,16 +7,18 @@ interface AdminClassesProps {
   classes: { [key: string]: ClassDefinition };
   classRequirements: { [key: string]: any };
   items: { [key: string]: Item };
-  onUpdateClasses: (classes: { [key: string]: ClassDefinition }) => void;
-  onUpdateClassRequirements: (requirements: { [key: string]: any }) => void;
+  onCreateClass: (classData: any, requirementData?: any) => void;
+  onUpdateClass: (classId: string, classData: any, requirementData?: any) => void;
+  onDeleteClass: (classId: string) => void;
 }
 
 export const AdminClasses: React.FC<AdminClassesProps> = ({ 
   classes, 
   classRequirements, 
   items, 
-  onUpdateClasses, 
-  onUpdateClassRequirements 
+  onCreateClass,
+  onUpdateClass,
+  onDeleteClass
 }) => {
   const [editingClass, setEditingClass] = useState<string | null>(null);
   const [newClassName, setNewClassName] = useState('');
@@ -56,20 +58,22 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
   const handleSave = () => {
     if (!newClassName.trim()) return;
     
-    const updatedClasses = { ...classes };
-    const updatedRequirements = { ...classRequirements };
-    
-    if (editingClass && editingClass !== newClassName) {
-      delete updatedClasses[editingClass];
-      delete updatedRequirements[editingClass];
+    const finalClassData = { ...classData, id: newClassName, name: newClassName };
+    const finalRequirementData = classRequirement && Object.keys(classRequirement).length > 0 ? classRequirement : undefined;
+
+    if (editingClass) {
+      if (editingClass !== newClassName) {
+        // ID changed - delete old and create new
+        onDeleteClass(editingClass);
+        onCreateClass(finalClassData, finalRequirementData);
+      } else {
+        // Same ID - update existing
+        onUpdateClass(editingClass, finalClassData, finalRequirementData);
+      }
+    } else {
+      // Creating new class
+      onCreateClass(finalClassData, finalRequirementData);
     }
-    
-    updatedClasses[newClassName] = { ...classData, id: newClassName, name: newClassName };
-    if (classRequirement && Object.keys(classRequirement).length > 0) {
-      updatedRequirements[newClassName] = classRequirement;
-    }
-    onUpdateClasses(updatedClasses);
-    onUpdateClassRequirements(updatedRequirements);
     
     setEditingClass(null);
     setIsCreating(false);
@@ -96,12 +100,7 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
 
   const handleDelete = (className: string) => {
     if (confirm(`Are you sure you want to delete the ${className} class?`)) {
-      const updatedClasses = { ...classes };
-      const updatedRequirements = { ...classRequirements };
-      delete updatedClasses[className];
-      delete updatedRequirements[className];
-      onUpdateClasses(updatedClasses);
-      onUpdateClassRequirements(updatedRequirements);
+      onDeleteClass(className);
     }
   };
 
